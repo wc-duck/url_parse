@@ -90,22 +90,22 @@ struct parse_url_ctx
 const char* parse_url_strnchr( const char* str, size_t len, int ch )
 {
 	for( size_t i = 0; i < len; ++i )
-	if( str[i] == ch )
-	return &str[i];
+		if( str[i] == ch )
+			return &str[i];
 	return 0x0;
 }
 
 static void parse_url_strncpy_lower( char* dst, const char* src, size_t chars )
 {
 	for( size_t i = 0; i < chars; ++i )
-	dst[i] = (char)tolower( src[i] );
+		dst[i] = (char)tolower( src[i] );
 	dst[chars] = '\0';
 }
 
 static void* parse_url_alloc_mem( parse_url_ctx* ctx, size_t request_size )
 {
 	if( request_size > ctx->memleft )
-	return 0;
+		return 0;
 	void* res = (char*)ctx->mem + ctx->memsize - ctx->memleft;
 	ctx->memleft -= request_size;
 	return res;
@@ -114,12 +114,12 @@ static void* parse_url_alloc_mem( parse_url_ctx* ctx, size_t request_size )
 static unsigned int parse_url_default_port_for_scheme( const char* scheme )
 {
 	if( scheme == 0x0 )
-	return 0;
+		return 0;
 
-	if( strcmp( scheme, "http" ) == 0 ) return 80;
-	if( strcmp( scheme, "https" ) == 0 ) return 443;
-	if( strcmp( scheme, "ftp" ) == 0 ) return 21;
-	if( strcmp( scheme, "ssh" ) == 0 ) return 22;
+	if( strcmp( scheme, "http"   ) == 0 ) return 80;
+	if( strcmp( scheme, "https"  ) == 0 ) return 443;
+	if( strcmp( scheme, "ftp"    ) == 0 ) return 21;
+	if( strcmp( scheme, "ssh"    ) == 0 ) return 22;
 	if( strcmp( scheme, "telnet" ) == 0 ) return 23;
 	return 0;
 }
@@ -130,19 +130,19 @@ static const char* parse_url_parse_scheme( const char* url, parse_url_ctx* ctx, 
 
 	const char* schemesep = strchr( url, ':' );
 	if( schemesep == 0x0 )
-	return url;
+		return url;
 	else
 	{
 		// ... is this the user part of a user/pass pair or the separator host:port? ...
 		if( schemesep[1] != '/')
-		return url;
+			return url;
 
 		if( schemesep[2] != '/' )
-		return 0x0;
+			return 0x0;
 
 		out->scheme = (const char*)parse_url_alloc_mem( ctx, (size_t)( schemesep - url + 1 ) );
 		if( out->scheme == 0x0 )
-		return 0x0;
+			return 0x0;
 		parse_url_strncpy_lower( (char*)out->scheme, url, (size_t)( schemesep - url ) );
 		return &schemesep[3];
 	}
@@ -164,7 +164,7 @@ static const char* parse_url_parse_user_pass( const char* url, parse_url_ctx* ct
 
 			out->user = (const char*)parse_url_alloc_mem( ctx, (size_t)( atpos - url + 1 ) );
 			if( out->user == 0 )
-			return 0;
+				return 0;
 			parse_url_strncpy_lower( (char*)out->user, url, (size_t)( atpos - url ) );
 		}
 		else
@@ -216,7 +216,7 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 	{
 		out->host = (const char*)parse_url_alloc_mem( ctx, hostlen + 1 );
 		if( out->host == 0x0 )
-		return 0x0;
+			return 0x0;
 		parse_url_strncpy_lower( (char*)out->host, url, hostlen );
 	}
 
@@ -230,7 +230,7 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 		size_t reslen = strlen( pathsep );
 		out->path = (const char*)parse_url_alloc_mem( ctx, reslen + 1 );
 		if( out->path == 0x0 )
-		return 0x0;
+			return 0x0;
 		parse_url_strncpy_lower( (char*)out->path, pathsep, reslen );
 	}
 
