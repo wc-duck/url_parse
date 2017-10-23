@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/wc-duck/url_parser.svg?branch=master)](https://travis-ci.org/wc-duck/url_parser)
+[![Build Status](https://travis-ci.org/wc-duck/url_parse.svg?branch=master)](https://travis-ci.org/wc-duck/url_parse)
 [![Build status](https://ci.appveyor.com/api/projects/status/hgrs9idixsu3hgrc?svg=true)](https://ci.appveyor.com/project/wc-duck/url-parse)
 
 # url.h
