@@ -48,7 +48,7 @@ settings.cc.Output = output_func
 settings.lib.Output = output_func
 settings.link.Output = output_func
 
-local tests  = Link( settings, 'uuid_tests', Compile( settings, 'test/url_parse_tests.cpp' ) )
+local tests  = Link( settings, 'url_tests', Compile( settings, 'test/url_parse_tests.cpp' ) )
 
 test_args = " -v"
 if ScriptArgs["test"]     then test_args = test_args .. " -t " .. ScriptArgs["test"] end
