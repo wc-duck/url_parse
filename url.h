@@ -140,7 +140,7 @@ static const char* parse_url_parse_scheme( const char* url, parse_url_ctx* ctx, 
 		if( schemesep[2] != '/' )
 		return 0x0;
 
-		out->scheme = (const char*)parse_url_alloc_mem( ctx, schemesep - url + 1 );
+		out->scheme = (const char*)parse_url_alloc_mem( ctx, (size_t)( schemesep - url + 1 ) );
 		if( out->scheme == 0x0 )
 		return 0x0;
 		parse_url_strncpy_lower( (char*)out->scheme, url, (size_t)( schemesep - url ) );
@@ -162,7 +162,7 @@ static const char* parse_url_parse_user_pass( const char* url, parse_url_ctx* ct
 		{
 			out->pass = "";
 
-			out->user = (const char*)parse_url_alloc_mem( ctx, atpos - url + 1 );
+			out->user = (const char*)parse_url_alloc_mem( ctx, (size_t)( atpos - url + 1 ) );
 			if( out->user == 0 )
 			return 0;
 			parse_url_strncpy_lower( (char*)out->user, url, (size_t)( atpos - url ) );
