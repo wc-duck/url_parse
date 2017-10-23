@@ -45,7 +45,7 @@ TEST full_url_parse()
 
 	free( parsed );
 
-	return 0;
+	return GREATEST_TEST_RES_PASS;
 }
 
 TEST url_no_scheme_with_port()
@@ -64,7 +64,7 @@ TEST url_no_scheme_with_port()
 
 	free( parsed );
 
-	return 0;
+	return GREATEST_TEST_RES_PASS;
 }
 
 TEST url_no_host()
@@ -83,7 +83,7 @@ TEST url_no_host()
 
 	free( parsed );
 
-	return 0;
+	return GREATEST_TEST_RES_PASS;
 }
 
 TEST default_port_parse()
@@ -116,7 +116,7 @@ TEST default_port_parse()
 
 	free( parsed );
 
-	return 0;
+	return GREATEST_TEST_RES_PASS;
 }
 
 TEST default_scheme_parse()
@@ -137,7 +137,7 @@ TEST default_scheme_parse()
 
 	free( parsed );
 
-	return 0;
+	return GREATEST_TEST_RES_PASS;
 }
 
 TEST default_scheme_with_user_parse()
@@ -157,7 +157,7 @@ TEST default_scheme_with_user_parse()
 
 	free( parsed );
 
-	return 0;
+	return GREATEST_TEST_RES_PASS;
 }
 
 
