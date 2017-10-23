@@ -48,4 +48,18 @@ settings.cc.Output = output_func
 settings.lib.Output = output_func
 settings.link.Output = output_func
 
-local url_parse_tests = Link( settings, 'url_parse_tests', Compile( settings, 'test/url_parse_tests.cpp' ), lib )
+local tests  = Link( settings, 'uuid_tests', Compile( settings, 'test/url_parse_tests.cpp' ) )
+
+test_args = " -v"
+if ScriptArgs["test"]     then test_args = test_args .. " -t " .. ScriptArgs["test"] end
+if ScriptArgs["suite"]    then test_args = test_args .. " -s " .. ScriptArgs["suite"] end
+
+if family == "windows" then
+        AddJob( "test",  "unittest",  string.gsub( tests, "/", "\\" ) .. test_args, tests, tests )
+else
+        AddJob( "test",     "unittest",  tests .. test_args, tests, tests )
+        AddJob( "valgrind", "valgrind",  "valgrind -v --leak-check=full --track-origins=yes " .. tests .. test_args, tests, tests )
+end
+
+PseudoTarget( "all", tests, listdir )
+DefaultTarget( "all" )
