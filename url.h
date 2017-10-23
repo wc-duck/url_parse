@@ -157,7 +157,7 @@ static const char* parse_url_parse_user_pass( const char* url, parse_url_ctx* ct
 	if( atpos != 0x0 )
 	{
 		// ... check for a : before the @ ...
-		const char* passsep = parse_url_strnchr( url, atpos - url, ':' );
+		const char* passsep = parse_url_strnchr( url, (size_t)( atpos - url ), ':' );
 		if( passsep == 0 )
 		{
 			out->pass = "";
@@ -207,7 +207,7 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 	}
 	else
 	{
-		out->port = atoi( portsep + 1 );
+		out->port = (unsigned int)atoi( portsep + 1 );
 		hostlen = (size_t)( portsep - url );
 		pathsep = strchr( portsep, '/' );
 	}
