@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/wc-duck/url_parser.svg?branch=master)](https://travis-ci.org/wc-duck/url_parser)
-[![Build status](https://ci.appveyor.com/api/projects/status/3ahugtvj76veel83?svg=true)](https://ci.appveyor.com/project/wc-duck/url-parser)
+[![Build status](https://ci.appveyor.com/api/projects/status/hgrs9idixsu3hgrc?svg=true)](https://ci.appveyor.com/project/wc-duck/url-parse)
 
 # url.h
 Simple, STB-style, parser for URL:s as specified by RFC1738 ( http://www.ietf.org/rfc/rfc1738.txt )
