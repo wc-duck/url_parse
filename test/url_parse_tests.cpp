@@ -48,6 +48,25 @@ TEST full_url_parse()
 	return GREATEST_TEST_RES_PASS;
 }
 
+TEST full_url_parse_win_style_path()
+{
+	parsed_url* parsed = parse_url( "http://user:pass@testurl.com:8080/e:/whoppa", 0x0, 0 );
+	if( parsed == 0x0 )
+		FAILm( "failed to parse url" );
+
+	ASSERT_STR_EQ(        "http", parsed->scheme );
+	ASSERT_STR_EQ( "testurl.com", parsed->host );
+	ASSERT_STR_EQ(  "/e:/whoppa", parsed->path );
+	ASSERT_STR_EQ(        "user", parsed->user );
+	ASSERT_STR_EQ(        "pass", parsed->pass );
+
+	ASSERT_EQ( 8080, parsed->port );
+
+	free( parsed );
+
+	return GREATEST_TEST_RES_PASS;
+}
+
 TEST url_no_scheme_with_port()
 {
 	parsed_url* parsed = parse_url( "testurl.com:8080", 0x0, 0 );
@@ -80,6 +99,63 @@ TEST url_no_host()
 	ASSERT_EQ( 0x0, parsed->user );
 	ASSERT_EQ( 0x0, parsed->pass );
 	ASSERT_EQ(   0, parsed->port );
+
+	free( parsed );
+
+	return GREATEST_TEST_RES_PASS;
+}
+
+TEST url_win_style_abs_path()
+{
+	parsed_url* parsed = parse_url( "file:///e:/sub/resource.file", 0x0, 0 );
+	if( parsed == 0x0 )
+		FAILm( "failed to parse url" );
+
+	ASSERT_STR_EQ(            "localhost",  parsed->host );
+	ASSERT_STR_EQ(                 "file",  parsed->scheme );
+	ASSERT_STR_EQ( "/e:/sub/resource.file", parsed->path );
+
+	ASSERT_EQ( 0x0, parsed->user );
+	ASSERT_EQ( 0x0, parsed->pass );
+	ASSERT_EQ(   0, parsed->port );
+
+	free( parsed );
+
+	return GREATEST_TEST_RES_PASS;
+}
+
+TEST url_win_style_abs_path_with_host()
+{
+	parsed_url* parsed = parse_url( "file://some_host/e:/sub/resource.file", 0x0, 0 );
+	if( parsed == 0x0 )
+		FAILm( "failed to parse url" );
+
+	ASSERT_STR_EQ(             "some_host",  parsed->host );
+	ASSERT_STR_EQ(                  "file",  parsed->scheme );
+	ASSERT_STR_EQ( "/e:/sub/resource.file", parsed->path );
+
+	ASSERT_EQ( 0x0, parsed->user );
+	ASSERT_EQ( 0x0, parsed->pass );
+	ASSERT_EQ(   0, parsed->port );
+
+	free( parsed );
+
+	return GREATEST_TEST_RES_PASS;
+}
+
+TEST url_win_style_abs_path_with_host_and_port()
+{
+	parsed_url* parsed = parse_url( "file://some_host:1337/e:/sub/resource.file", 0x0, 0 );
+	if( parsed == 0x0 )
+		FAILm( "failed to parse url" );
+
+	ASSERT_STR_EQ(            "some_host",  parsed->host );
+	ASSERT_STR_EQ(                 "file",  parsed->scheme );
+	ASSERT_STR_EQ( "/e:/sub/resource.file", parsed->path );
+
+	ASSERT_EQ( 0x0,  parsed->user );
+	ASSERT_EQ( 0x0,  parsed->pass );
+	ASSERT_EQ( 1337, parsed->port );
 
 	free( parsed );
 
@@ -164,7 +240,11 @@ TEST default_scheme_with_user_parse()
 GREATEST_SUITE( url_parse )
 {
 	RUN_TEST( full_url_parse );
+	RUN_TEST( full_url_parse_win_style_path );
 	RUN_TEST( url_no_host );
+	RUN_TEST( url_win_style_abs_path );
+	RUN_TEST( url_win_style_abs_path_with_host );
+	RUN_TEST( url_win_style_abs_path_with_host_and_port );
 	RUN_TEST( url_no_scheme_with_port );
 	RUN_TEST( default_port_parse );
 	RUN_TEST( default_scheme_parse );

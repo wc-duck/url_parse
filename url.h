@@ -194,22 +194,31 @@ static const char* parse_url_parse_user_pass( const char* url, parse_url_ctx* ct
 static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ctx, parsed_url* out )
 {
 	out->host = "localhost";
+	out->port = parse_url_default_port_for_scheme( out->scheme );
 
 	const char* portsep = strchr( url, ':' );
-	const char* pathsep = 0x0;
+	const char* pathsep = strchr( url, '/' );
+
 	size_t hostlen = 0;
 
 	if( portsep == 0x0 )
 	{
-		out->port = parse_url_default_port_for_scheme( out->scheme );
 		pathsep = strchr( url, '/' );
 		hostlen = pathsep == 0x0 ? strlen( url ) : (size_t)( pathsep - url );
 	}
 	else
 	{
-		out->port = (unsigned int)atoi( portsep + 1 );
-		hostlen = (size_t)( portsep - url );
-		pathsep = strchr( portsep, '/' );
+		if(pathsep && portsep && (pathsep < portsep))
+		{
+			// ... path separator was before port-separator, i.e. the : was not a port-separator! ...
+			hostlen = (size_t)( pathsep - url );
+		}
+		else
+		{
+			out->port = (unsigned int)atoi( portsep + 1 );
+			hostlen = (size_t)( portsep - url );
+			pathsep = strchr( portsep, '/' );
+		}
 	}
 
 	if( hostlen > 0 )
