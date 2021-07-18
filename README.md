@@ -29,12 +29,14 @@ int main(int argc, char** argv)
     if( parsed == 0x0 )
         printf("failed to parse URL: %s\n", argv[1]);
 
-    printf( "scheme: %s\n", parsed->scheme );
-    printf( "host:   %s\n", parsed->host );
-    printf( "port:   %d\n", parsed->port );
-    printf( "path:   %s\n", parsed->path );
-    printf( "user:   %s\n", parsed->user );
-    printf( "pass:   %s\n", parsed->pass );
+    printf( "scheme:   %s\n", parsed->scheme );
+    printf( "host:     %s\n", parsed->host );
+    printf( "port:     %d\n", parsed->port );
+    printf( "path:     %s\n", parsed->path );
+    printf( "user:     %s\n", parsed->user );
+    printf( "pass:     %s\n", parsed->pass );
+    printf( "scheme:   %s\n", parsed->scheme );
+    printf( "fragment: %s\n", parsed->fragment );
 
     free( parsed );
     return 0;

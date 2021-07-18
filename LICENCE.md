@@ -3,9 +3,9 @@
  compile with URL_PARSER_IMPLEMENTATION defined for implementation.
  compile with URL_PARSER_IMPLEMENTATION_STATIC defined for static implementation.
 
- version 1.0, June, 2014
+ version 1.1, July, 2021
 
- Copyright (C) 2014- Fredrik Kihlander
+ Copyright (C) 2021- Fredrik Kihlander
 
  This software is provided 'as-is', without any express or implied
  warranty.  In no event will the authors be held liable for any damages

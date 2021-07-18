@@ -1,9 +1,9 @@
 /*
     Simple parser for URL:s as specified by RFC1738 ( http://www.ietf.org/rfc/rfc1738.txt )
 
-    version 1.0, June, 2014
+    version 1.1, July, 2021
 
-	Copyright (C) 2014- Fredrik Kihlander
+	Copyright (C) 2021- Fredrik Kihlander
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
