@@ -50,6 +50,7 @@ struct parsed_url
 {
 	/**
 	 * scheme part of url or 0x0 if not present.
+	 * @note the scheme will be lower-cased!
 	 */
 	const char*  scheme;
 
@@ -140,13 +141,6 @@ const char* parse_url_strnchr( const char* str, size_t len, int ch )
 	return 0x0;
 }
 
-static void parse_url_strncpy_lower( char* dst, const char* src, size_t chars )
-{
-	for( size_t i = 0; i < chars; ++i )
-		dst[i] = (char)tolower( src[i] );
-	dst[chars] = '\0';
-}
-
 static void* parse_url_alloc_mem( parse_url_ctx* ctx, size_t request_size )
 {
 	if( request_size > ctx->memleft )
@@ -169,6 +163,28 @@ static unsigned int parse_url_default_port_for_scheme( const char* scheme )
 	return 0x0;
 }
 
+static const char* parse_url_alloc_string( parse_url_ctx* ctx, const char* src, size_t len)
+{
+	char* dst = (char*)parse_url_alloc_mem( ctx, len + 1 );
+	if( dst == 0x0 )
+		return 0x0;
+	memcpy( dst, src, len );
+	dst[len] = '\0';
+	return dst;
+}
+
+static const char* parse_url_alloc_lower_string( parse_url_ctx* ctx, const char* src, size_t len)
+{
+	char* dst = (char*)parse_url_alloc_mem( ctx, len + 1 );
+	if( dst == 0x0 )
+		return 0x0;
+	// parse_url_strncpy_lower( new_str, src, len );
+	for( size_t i = 0; i < len; ++i )
+		dst[i] = (char)tolower( src[i] );
+	dst[len] = '\0';
+	return dst;
+}
+
 static const char* parse_url_parse_scheme( const char* url, parse_url_ctx* ctx, parsed_url* out )
 {
 	const char* schemesep = strchr( url, ':' );
@@ -183,10 +199,7 @@ static const char* parse_url_parse_scheme( const char* url, parse_url_ctx* ctx, 
 		if( schemesep[2] != '/' )
 			return 0x0;
 
-		out->scheme = (const char*)parse_url_alloc_mem( ctx, (size_t)( schemesep - url + 1 ) );
-		if( out->scheme == 0x0 )
-			return 0x0;
-		parse_url_strncpy_lower( (char*)out->scheme, url, (size_t)( schemesep - url ) );
+		out->scheme = parse_url_alloc_lower_string( ctx, url, (size_t)( schemesep - url ) );
 		return &schemesep[3];
 	}
 }
@@ -201,28 +214,14 @@ static const char* parse_url_parse_user_pass( const char* url, parse_url_ctx* ct
 		if( passsep == 0 )
 		{
 			out->pass = "";
-
-			out->user = (const char*)parse_url_alloc_mem( ctx, (size_t)( atpos - url + 1 ) );
-			if( out->user == 0 )
-				return 0;
-			parse_url_strncpy_lower( (char*)out->user, url, (size_t)( atpos - url ) );
+			out->user = parse_url_alloc_string( ctx, url, (size_t)( atpos - url ) );
 		}
 		else
 		{
 			size_t userlen = (size_t)(passsep - url);
 			size_t passlen = (size_t)(atpos - passsep - 1);
-			char* user = (char*)parse_url_alloc_mem( ctx, userlen + 1 );
-			char* pass = (char*)parse_url_alloc_mem( ctx, passlen + 1 );
-			if( user == 0x0 ) return 0x0;
-			if( pass == 0x0 ) return 0x0;
-
-			memcpy( user, url, userlen );
-			user[userlen] = '\0';
-			memcpy( pass, passsep + 1, passlen );
-			pass[passlen] = '\0';
-
-			out->user = user;
-			out->pass = pass;
+			out->user = (char*)parse_url_alloc_string( ctx, url, userlen );
+			out->pass = (char*)parse_url_alloc_string( ctx, passsep + 1, passlen );
 		}
 
 		return atpos + 1;
@@ -262,10 +261,7 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 
 	if( hostlen > 0 )
 	{
-		out->host = (const char*)parse_url_alloc_mem( ctx, hostlen + 1 );
-		if( out->host == 0x0 )
-			return 0x0;
-		parse_url_strncpy_lower( (char*)out->host, url, hostlen );
+		out->host = parse_url_alloc_lower_string( ctx, url, hostlen );
 	}
 
 	// ... parse path ... TODO: extract to own function.
@@ -280,10 +276,7 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 		else
 			reslen = strlen( pathsep );
 
-		out->path = (const char*)parse_url_alloc_mem( ctx, reslen + 1 );
-		if( out->path == 0x0 )
-			return 0x0;
-		parse_url_strncpy_lower( (char*)out->path, pathsep, reslen );
+		out->path = parse_url_alloc_lower_string( ctx, pathsep, reslen );
 
 		return pathsep + reslen;
 	}
@@ -309,10 +302,7 @@ static const char* parse_url_parse_query( const char* url, parse_url_ctx* ctx, p
 	else
 		query_len = strlen(url);
 
-	out->query = (const char*)parse_url_alloc_mem( ctx, query_len + 1 );
-	if( out->query == 0x0 )
-		return 0x0;
-	parse_url_strncpy_lower( (char*)out->query, url, query_len );
+	out->query = parse_url_alloc_string( ctx, url, query_len );
 
 	return url + query_len;
 }
@@ -327,10 +317,7 @@ static const char* parse_url_parse_fragment( const char* url, parse_url_ctx* ctx
 	++url;
 
 	size_t frag_len = strlen(url);
-	out->fragment = (const char*)parse_url_alloc_mem( ctx, frag_len + 1 );
-	if( out->fragment == 0x0 )
-		return 0x0;
-	parse_url_strncpy_lower( (char*)out->fragment, url, frag_len );
+	out->fragment = parse_url_alloc_string( ctx, url, frag_len );
 
 	return url + frag_len;
 }

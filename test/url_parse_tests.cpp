@@ -71,6 +71,31 @@ TEST full_url_parse_win_style_path()
 	return GREATEST_TEST_RES_PASS;
 }
 
+TEST url_scheme_is_lower_cased()
+{
+	{
+		parsed_url* parsed = parse_url( "HTTP://test.com", 0x0, 0 );
+		if( parsed == 0x0 )
+			FAILm( "failed to parse url" );
+
+		ASSERT_STR_EQ( "http", parsed->scheme );
+
+		free( parsed );
+	}
+
+	{
+		parsed_url* parsed = parse_url( "hTTp://test.com", 0x0, 0 );
+		if( parsed == 0x0 )
+			FAILm( "failed to parse url" );
+
+		ASSERT_STR_EQ( "http", parsed->scheme );
+
+		free( parsed );
+	}
+
+	return GREATEST_TEST_RES_PASS;
+}
+
 TEST url_no_scheme_with_port()
 {
 	parsed_url* parsed = parse_url( "testurl.com:8080", 0x0, 0 );
@@ -322,6 +347,8 @@ TEST query_and_fragment()
 	return GREATEST_TEST_RES_PASS;
 }
 
+// TODO: add tests where small buffers would make memory-alloc fail
+
 GREATEST_SUITE( url_parse )
 {
 	RUN_TEST( full_url_parse );
@@ -330,6 +357,7 @@ GREATEST_SUITE( url_parse )
 	RUN_TEST( url_win_style_abs_path );
 	RUN_TEST( url_win_style_abs_path_with_host );
 	RUN_TEST( url_win_style_abs_path_with_host_and_port );
+	RUN_TEST( url_scheme_is_lower_cased );
 	RUN_TEST( url_no_scheme_with_port );
 	RUN_TEST( default_port_parse );
 	RUN_TEST( default_scheme_parse );
