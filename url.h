@@ -200,6 +200,8 @@ static const char* parse_url_parse_scheme( const char* url, parse_url_ctx* ctx, 
 			return 0x0;
 
 		out->scheme = parse_url_alloc_lower_string( ctx, url, (size_t)( schemesep - url ) );
+		if(out->scheme == 0x0)
+			return 0x0;
 		return &schemesep[3];
 	}
 }
@@ -223,6 +225,9 @@ static const char* parse_url_parse_user_pass( const char* url, parse_url_ctx* ct
 			out->user = (char*)parse_url_alloc_string( ctx, url, userlen );
 			out->pass = (char*)parse_url_alloc_string( ctx, passsep + 1, passlen );
 		}
+
+		if(out->user == 0x0 || out->pass == 0x0)
+			return 0x0;
 
 		return atpos + 1;
 	}
@@ -262,6 +267,8 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 	if( hostlen > 0 )
 	{
 		out->host = parse_url_alloc_lower_string( ctx, url, hostlen );
+		if(out->host == 0x0)
+			return 0x0;
 	}
 
 	// ... parse path ... TODO: extract to own function.
@@ -277,7 +284,8 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 			reslen = strlen( pathsep );
 
 		out->path = parse_url_alloc_lower_string( ctx, pathsep, reslen );
-
+		if(out->path == 0x0)
+			return 0x0;
 		return pathsep + reslen;
 	}
 
@@ -303,8 +311,9 @@ static const char* parse_url_parse_query( const char* url, parse_url_ctx* ctx, p
 		query_len = strlen(url);
 
 	out->query = parse_url_alloc_string( ctx, url, query_len );
-
-	return url + query_len;
+	return out->query == 0x0
+				? 0x0
+				: url + query_len;
 }
 
 static const char* parse_url_parse_fragment( const char* url, parse_url_ctx* ctx, parsed_url* out )
@@ -319,10 +328,18 @@ static const char* parse_url_parse_fragment( const char* url, parse_url_ctx* ctx
 	size_t frag_len = strlen(url);
 	out->fragment = parse_url_alloc_string( ctx, url, frag_len );
 
-	return url + frag_len;
+	return out->fragment == 0x0
+				? 0x0
+				: url + frag_len;
 }
 
-#define URL_PARSE_FAIL_IF( x ) if( x ) { if( usermem == 0x0 ) free( mem ); return 0x0; }
+#define URL_PARSE_FAIL_IF( x ) \
+	if( x )                    \
+	{                          \
+		if( usermem == 0x0 )   \
+			free( mem );       \
+		return 0x0;            \
+	}
 
 URL_PARSER_LINKAGE size_t parse_url_calc_mem_usage( const char* url )
 {

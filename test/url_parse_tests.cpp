@@ -347,7 +347,30 @@ TEST query_and_fragment()
 	return GREATEST_TEST_RES_PASS;
 }
 
-// TODO: add tests where small buffers would make memory-alloc fail
+TEST mem_alloc_fail()
+{
+	// ... test that all buffer-sizes less than needed will not fail the parsing ...
+
+	char buffer[2048];
+	for(size_t i = 0; i < sizeof(buffer); ++i)
+	{
+		parsed_url* parsed = parse_url("http://user:pass@test.com/whoppa?apa=kossa#fragment", buffer, i);
+		if(parsed)
+		{
+			ASSERT_STR_EQ(               "http", parsed->scheme );
+			ASSERT_STR_EQ(           "test.com", parsed->host );
+			ASSERT_STR_EQ(            "/whoppa", parsed->path );
+			ASSERT_STR_EQ(               "user", parsed->user );
+			ASSERT_STR_EQ(               "pass", parsed->pass );
+			ASSERT_STR_EQ(          "apa=kossa", parsed->query );
+			ASSERT_STR_EQ(           "fragment", parsed->fragment );
+
+			ASSERT_EQ( 80, parsed->port );
+			return GREATEST_TEST_RES_PASS;
+		}
+	}
+	return GREATEST_TEST_RES_FAIL;
+}
 
 GREATEST_SUITE( url_parse )
 {
@@ -365,6 +388,7 @@ GREATEST_SUITE( url_parse )
 	RUN_TEST( simple_query );
 	RUN_TEST( simple_fragment );
 	RUN_TEST( query_and_fragment );
+	RUN_TEST( mem_alloc_fail );
 }
 
 GREATEST_MAIN_DEFS();
