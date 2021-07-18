@@ -44,15 +44,49 @@
 /**
  * Struct describing a parsed url.
  *
- * @example <scheme>://<user>:<pass>@<host>:<port>/<path>
+ * @example <scheme>://<user>:<pass>@<host>:<port>/<path>?<query>#<fragment>
  */
-struct parsed_url {
-	const char* scheme; ///< scheme part of url or 0x0 if not present.
-	const char* user;   ///< user part of url or 0x0 if not present.
-	const char* pass;   ///< password part of url or 0x0 if not present.
-	const char* host;   ///< host part of url or 0x0 if not present.
-	unsigned int port;   ///< port part of url or 0 if not present.
-	const char* path;   ///< path part of url or 0x0 if not present.
+struct parsed_url
+{
+	/**
+	 * scheme part of url or 0x0 if not present.
+	 */
+	const char*  scheme;
+
+	/**
+	 * user part of url or 0x0 if not present.
+	 */
+	const char*  user;
+
+	/**
+	 * password part of url or 0x0 if not present.
+	 */
+	const char*  pass;
+
+	/**
+	 * host part of url or "localhost" if not present.
+	 */
+	const char*  host;
+
+	/**
+	 * port part of url.
+	 * if not present a default depending on scheme is used, if no default is
+	 * available for scheme, 0 will be used.
+	 *
+	 * supported defaults:
+	 * "http"   - 80
+	 * "https"  - 443
+	 * "ftp"    - 21
+	 * "ssh"    - 22
+	 * "telnet" - 23
+	 */
+	unsigned int port;
+
+	/**
+	 * path part of url.
+	 * if the path part of the url is not present, it will default to "/"
+	 */
+	const char*  path;
 };
 
 /**
@@ -121,7 +155,7 @@ static unsigned int parse_url_default_port_for_scheme( const char* scheme )
 	if( strcmp( scheme, "ftp"    ) == 0 ) return 21;
 	if( strcmp( scheme, "ssh"    ) == 0 ) return 22;
 	if( strcmp( scheme, "telnet" ) == 0 ) return 23;
-	return 0;
+	return 0x0;
 }
 
 static const char* parse_url_parse_scheme( const char* url, parse_url_ctx* ctx, parsed_url* out )
