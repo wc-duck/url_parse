@@ -171,8 +171,6 @@ static unsigned int parse_url_default_port_for_scheme( const char* scheme )
 
 static const char* parse_url_parse_scheme( const char* url, parse_url_ctx* ctx, parsed_url* out )
 {
-	out->scheme = 0x0;
-
 	const char* schemesep = strchr( url, ':' );
 	if( schemesep == 0x0 )
 		return url;
@@ -195,9 +193,6 @@ static const char* parse_url_parse_scheme( const char* url, parse_url_ctx* ctx, 
 
 static const char* parse_url_parse_user_pass( const char* url, parse_url_ctx* ctx, parsed_url* out )
 {
-	out->user = 0x0;
-	out->pass = 0x0;
-
 	const char* atpos = strchr( url, '@' );
 	if( atpos != 0x0 )
 	{
@@ -238,7 +233,6 @@ static const char* parse_url_parse_user_pass( const char* url, parse_url_ctx* ct
 
 static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ctx, parsed_url* out )
 {
-	out->host = "localhost";
 	out->port = parse_url_default_port_for_scheme( out->scheme );
 
 	const char* portsep = strchr( url, ':' );
@@ -275,11 +269,7 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 	}
 
 	// ... parse path ... TODO: extract to own function.
-	if( pathsep == 0x0 )
-	{
-		out->path = "/";
-	}
-	else
+	if( pathsep != 0x0 )
 	{
 		// ... check if there are any query or fragment to parse ...
 		const char* path_end = strpbrk(pathsep, "?#");
@@ -303,8 +293,6 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 
 static const char* parse_url_parse_query( const char* url, parse_url_ctx* ctx, parsed_url* out )
 {
-	out->query = 0x0;
-
 	// ... do we have a query? ...
 	if(*url != '?')
 		return url;
@@ -331,8 +319,6 @@ static const char* parse_url_parse_query( const char* url, parse_url_ctx* ctx, p
 
 static const char* parse_url_parse_fragment( const char* url, parse_url_ctx* ctx, parsed_url* out )
 {
-	out->fragment = 0x0;
-
 	// ... do we have a fragment? ...
 	if(*url != '#')
 		return url;
@@ -369,6 +355,11 @@ URL_PARSER_LINKAGE parsed_url* parse_url( const char* url, void* usermem, size_t
 
 	parsed_url* out = (parsed_url*)parse_url_alloc_mem( &ctx, sizeof( parsed_url ) );
 	URL_PARSE_FAIL_IF( out == 0x0 );
+
+	// ... set default values ...
+	memset(out, 0x0, sizeof(parsed_url));
+	out->host = "localhost";
+	out->path = "/";
 
 	url = parse_url_parse_scheme   ( url, &ctx, out ); URL_PARSE_FAIL_IF( url == 0x0 );
 	url = parse_url_parse_user_pass( url, &ctx, out ); URL_PARSE_FAIL_IF( url == 0x0 );
