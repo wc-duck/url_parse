@@ -36,7 +36,6 @@ local settings = NewSettings() -- {}
 settings.cc.includes:Add("include")
 if family == 'windows' then
 	platform = "winx64"
-	settings.cc.flags:Add( "/TP" ) -- forcing c++ compile on windows =/
 else
 	platform = "linux_x86_64"
 	settings.cc.flags:Add( "-Wconversion", "-Wextra", "-Wall", "-Werror", "-Wstrict-aliasing=2" )
