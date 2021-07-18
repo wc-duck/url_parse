@@ -31,7 +31,7 @@
 
 TEST full_url_parse()
 {
-	parsed_url* parsed = parse_url( "http://user:pass@testurl.com:8080/sub/resource.file", 0x0, 0 );
+	parsed_url* parsed = parse_url( "http://user:pass@testurl.com:8080/sub/resource.file?query#fragment", 0x0, 0 );
 	if( parsed == 0x0 )
 		FAILm( "failed to parse url" );
 
@@ -40,6 +40,8 @@ TEST full_url_parse()
 	ASSERT_STR_EQ( "/sub/resource.file", parsed->path );
 	ASSERT_STR_EQ(               "user", parsed->user );
 	ASSERT_STR_EQ(               "pass", parsed->pass );
+	ASSERT_STR_EQ(              "query", parsed->query );
+	ASSERT_STR_EQ(           "fragment", parsed->fragment );
 
 	ASSERT_EQ( 8080, parsed->port );
 
@@ -50,7 +52,7 @@ TEST full_url_parse()
 
 TEST full_url_parse_win_style_path()
 {
-	parsed_url* parsed = parse_url( "http://user:pass@testurl.com:8080/e:/whoppa", 0x0, 0 );
+	parsed_url* parsed = parse_url( "http://user:pass@testurl.com:8080/e:/whoppa?query#fragment", 0x0, 0 );
 	if( parsed == 0x0 )
 		FAILm( "failed to parse url" );
 
@@ -59,6 +61,8 @@ TEST full_url_parse_win_style_path()
 	ASSERT_STR_EQ(  "/e:/whoppa", parsed->path );
 	ASSERT_STR_EQ(        "user", parsed->user );
 	ASSERT_STR_EQ(        "pass", parsed->pass );
+	ASSERT_STR_EQ(       "query", parsed->query );
+	ASSERT_STR_EQ(    "fragment", parsed->fragment );
 
 	ASSERT_EQ( 8080, parsed->port );
 
@@ -80,6 +84,8 @@ TEST url_no_scheme_with_port()
 	ASSERT_EQ( 0x0,  parsed->scheme );
 	ASSERT_EQ( 0x0,  parsed->user );
 	ASSERT_EQ( 0x0,  parsed->pass );
+	ASSERT_EQ( 0x0,  parsed->query );
+	ASSERT_EQ( 0x0,  parsed->fragment );
 
 	free( parsed );
 
@@ -99,6 +105,8 @@ TEST url_no_host()
 	ASSERT_EQ( 0x0, parsed->user );
 	ASSERT_EQ( 0x0, parsed->pass );
 	ASSERT_EQ(   0, parsed->port );
+	ASSERT_EQ( 0x0, parsed->query );
+	ASSERT_EQ( 0x0, parsed->fragment );
 
 	free( parsed );
 
@@ -118,6 +126,8 @@ TEST url_win_style_abs_path()
 	ASSERT_EQ( 0x0, parsed->user );
 	ASSERT_EQ( 0x0, parsed->pass );
 	ASSERT_EQ(   0, parsed->port );
+	ASSERT_EQ( 0x0, parsed->query );
+	ASSERT_EQ( 0x0, parsed->fragment );
 
 	free( parsed );
 
@@ -137,6 +147,8 @@ TEST url_win_style_abs_path_with_host()
 	ASSERT_EQ( 0x0, parsed->user );
 	ASSERT_EQ( 0x0, parsed->pass );
 	ASSERT_EQ(   0, parsed->port );
+	ASSERT_EQ( 0x0, parsed->query );
+	ASSERT_EQ( 0x0, parsed->fragment );
 
 	free( parsed );
 
@@ -156,6 +168,8 @@ TEST url_win_style_abs_path_with_host_and_port()
 	ASSERT_EQ( 0x0,  parsed->user );
 	ASSERT_EQ( 0x0,  parsed->pass );
 	ASSERT_EQ( 1337, parsed->port );
+	ASSERT_EQ( 0x0, parsed->query );
+	ASSERT_EQ( 0x0, parsed->fragment );
 
 	free( parsed );
 
@@ -176,6 +190,8 @@ TEST default_port_parse()
 	ASSERT_EQ(  80, parsed->port );
 	ASSERT_EQ( 0x0, parsed->user );
 	ASSERT_EQ( 0x0, parsed->pass );
+	ASSERT_EQ( 0x0, parsed->query );
+	ASSERT_EQ( 0x0, parsed->fragment );
 
 	free( parsed );
 
@@ -189,6 +205,8 @@ TEST default_port_parse()
 	ASSERT_EQ(  21, parsed->port );
 	ASSERT_EQ( 0x0, parsed->user );
 	ASSERT_EQ( 0x0, parsed->pass );
+	ASSERT_EQ( 0x0, parsed->query );
+	ASSERT_EQ( 0x0, parsed->fragment );
 
 	free( parsed );
 
@@ -210,6 +228,8 @@ TEST default_scheme_parse()
 	ASSERT_EQ(   0, parsed->port );
 	ASSERT_EQ( 0x0, parsed->user );
 	ASSERT_EQ( 0x0, parsed->pass );
+	ASSERT_EQ( 0x0, parsed->query );
+	ASSERT_EQ( 0x0, parsed->fragment );
 
 	free( parsed );
 
@@ -226,6 +246,8 @@ TEST default_scheme_with_user_parse()
 
 	ASSERT_EQ( 0x0, parsed->scheme );
 	ASSERT_EQ(   0, parsed->port );
+	ASSERT_EQ( 0x0, parsed->query );
+	ASSERT_EQ( 0x0, parsed->fragment );
 	ASSERT_STR_EQ( "testurl.com", parsed->host );
 	ASSERT_STR_EQ(           "/", parsed->path );
 	ASSERT_STR_EQ(         "hej", parsed->user );
@@ -236,6 +258,69 @@ TEST default_scheme_with_user_parse()
 	return GREATEST_TEST_RES_PASS;
 }
 
+TEST simple_query()
+{
+	parsed_url* parsed;
+
+	parsed = parse_url( "http://testurl.com/whoppa?apa=kossa", 0x0, 0 );
+	if( parsed == 0x0 )
+		FAILm( "failed to parse url" );
+
+	ASSERT_STR_EQ(        "http", parsed->scheme );
+	ASSERT_STR_EQ( "testurl.com", parsed->host );
+	ASSERT_STR_EQ(     "/whoppa", parsed->path );
+	ASSERT_STR_EQ(   "apa=kossa", parsed->query );
+
+	ASSERT_EQ( 0x0, parsed->user );
+	ASSERT_EQ( 0x0, parsed->pass );
+	ASSERT_EQ( 0x0, parsed->fragment );
+
+	free( parsed );
+	return GREATEST_TEST_RES_PASS;
+}
+
+TEST simple_fragment()
+{
+	parsed_url* parsed;
+
+	parsed = parse_url( "http://testurl.com/whoppa#le_fragment", 0x0, 0 );
+	if( parsed == 0x0 )
+		FAILm( "failed to parse url" );
+
+	ASSERT_STR_EQ(        "http", parsed->scheme );
+	ASSERT_STR_EQ( "testurl.com", parsed->host );
+	ASSERT_STR_EQ(     "/whoppa", parsed->path );
+	ASSERT_STR_EQ( "le_fragment", parsed->fragment );
+
+	ASSERT_EQ( 0x0, parsed->user );
+	ASSERT_EQ( 0x0, parsed->pass );
+	ASSERT_EQ( 0x0, parsed->query );
+
+
+	free( parsed );
+	return GREATEST_TEST_RES_PASS;
+}
+
+TEST query_and_fragment()
+{
+	parsed_url* parsed;
+
+	parsed = parse_url( "http://testurl.com/whoppa?apa=kossa#le_query", 0x0, 0 );
+	if( parsed == 0x0 )
+		FAILm( "failed to parse url" );
+
+	ASSERT_STR_EQ(        "http", parsed->scheme );
+	ASSERT_STR_EQ( "testurl.com", parsed->host );
+	ASSERT_STR_EQ(     "/whoppa", parsed->path );
+	ASSERT_STR_EQ(   "apa=kossa", parsed->query );
+	ASSERT_STR_EQ(    "le_query", parsed->fragment );
+
+	ASSERT_EQ( 0x0, parsed->user );
+	ASSERT_EQ( 0x0, parsed->pass );
+
+	free( parsed );
+	return GREATEST_TEST_RES_PASS;
+}
 
 GREATEST_SUITE( url_parse )
 {
@@ -249,6 +334,9 @@ GREATEST_SUITE( url_parse )
 	RUN_TEST( default_port_parse );
 	RUN_TEST( default_scheme_parse );
 	RUN_TEST( default_scheme_with_user_parse );
+	RUN_TEST( simple_query );
+	RUN_TEST( simple_fragment );
+	RUN_TEST( query_and_fragment );
 }
 
 GREATEST_MAIN_DEFS();

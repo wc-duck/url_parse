@@ -87,6 +87,17 @@ struct parsed_url
 	 * if the path part of the url is not present, it will default to "/"
 	 */
 	const char*  path;
+
+	/**
+	 * query part of url, default to 0x0 if not present in url.
+	 * as this is not standardized it is not parsed for the user.
+	 */
+	 const char*  query;
+
+	/**
+	 * fragment part of url, default to 0x0 if not present in url.
+	 */
+	 const char*  fragment;
 };
 
 /**
@@ -263,28 +274,86 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 		parse_url_strncpy_lower( (char*)out->host, url, hostlen );
 	}
 
-	// ... parse path ...
+	// ... parse path ... TODO: extract to own function.
 	if( pathsep == 0x0 )
 	{
 		out->path = "/";
 	}
 	else
 	{
-		size_t reslen = strlen( pathsep );
+		// ... check if there are any query or fragment to parse ...
+		const char* path_end = strpbrk(pathsep, "?#");
+
+		size_t reslen = 0;
+		if(path_end)
+			reslen = (size_t)(path_end - pathsep);
+		else
+			reslen = strlen( pathsep );
+
 		out->path = (const char*)parse_url_alloc_mem( ctx, reslen + 1 );
 		if( out->path == 0x0 )
 			return 0x0;
 		parse_url_strncpy_lower( (char*)out->path, pathsep, reslen );
+
+		return pathsep + reslen;
 	}
 
 	return url;
+}
+
+static const char* parse_url_parse_query( const char* url, parse_url_ctx* ctx, parsed_url* out )
+{
+	out->query = 0x0;
+
+	// ... do we have a query? ...
+	if(*url != '?')
+		return url;
+
+	// ... skip '?' ...
+	++url;
+
+	// ... find the end of the query ...
+	size_t query_len = 0;
+
+	const char* fragment_start = strchr(url, '#');
+	if(fragment_start)
+		query_len = (size_t)(fragment_start - url);
+	else
+		query_len = strlen(url);
+
+	out->query = (const char*)parse_url_alloc_mem( ctx, query_len + 1 );
+	if( out->query == 0x0 )
+		return 0x0;
+	parse_url_strncpy_lower( (char*)out->query, url, query_len );
+
+	return url + query_len;
+}
+
+static const char* parse_url_parse_fragment( const char* url, parse_url_ctx* ctx, parsed_url* out )
+{
+	out->fragment = 0x0;
+
+	// ... do we have a fragment? ...
+	if(*url != '#')
+		return url;
+
+	// ... skip '#' ...
+	++url;
+
+	size_t frag_len = strlen(url);
+	out->fragment = (const char*)parse_url_alloc_mem( ctx, frag_len + 1 );
+	if( out->fragment == 0x0 )
+		return 0x0;
+	parse_url_strncpy_lower( (char*)out->fragment, url, frag_len );
+
+	return url + frag_len;
 }
 
 #define URL_PARSE_FAIL_IF( x ) if( x ) { if( usermem == 0x0 ) free( mem ); return 0x0; }
 
 URL_PARSER_LINKAGE size_t parse_url_calc_mem_usage( const char* url )
 {
-	return sizeof( parsed_url ) + strlen( url ) + 5; // 5 == max number of '\0' terminate
+	return sizeof( parsed_url ) + strlen( url ) + 7; // 7 == max number of '\0' terminate
 }
 
 URL_PARSER_LINKAGE parsed_url* parse_url( const char* url, void* usermem, size_t mem_size )
@@ -301,9 +370,11 @@ URL_PARSER_LINKAGE parsed_url* parse_url( const char* url, void* usermem, size_t
 	parsed_url* out = (parsed_url*)parse_url_alloc_mem( &ctx, sizeof( parsed_url ) );
 	URL_PARSE_FAIL_IF( out == 0x0 );
 
-	url = parse_url_parse_scheme( url, &ctx, out ); URL_PARSE_FAIL_IF( url == 0x0 );
+	url = parse_url_parse_scheme   ( url, &ctx, out ); URL_PARSE_FAIL_IF( url == 0x0 );
 	url = parse_url_parse_user_pass( url, &ctx, out ); URL_PARSE_FAIL_IF( url == 0x0 );
 	url = parse_url_parse_host_port( url, &ctx, out ); URL_PARSE_FAIL_IF( url == 0x0 );
+	url = parse_url_parse_query    ( url, &ctx, out ); URL_PARSE_FAIL_IF( url == 0x0 );
+	url = parse_url_parse_fragment ( url, &ctx, out ); URL_PARSE_FAIL_IF( url == 0x0 );
 
 	return out;
 }
