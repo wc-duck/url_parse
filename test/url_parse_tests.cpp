@@ -372,6 +372,109 @@ TEST mem_alloc_fail()
 	return GREATEST_TEST_RES_FAIL;
 }
 
+TEST ipv6()
+{
+	char buffer[2048];
+
+	{
+		parsed_url* parsed = parse_url( "http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]/whoppa?apa=kossa#le_query", buffer, sizeof(buffer) );
+		if( parsed == 0x0 )
+			FAILm( "failed to parse url" );
+
+		ASSERT_STR_EQ(                                    "http", parsed->scheme );
+		ASSERT_STR_EQ( "2001:0db8:85a3:0000:0000:8a2e:0370:7334", parsed->host );
+		ASSERT_STR_EQ(                                 "/whoppa", parsed->path );
+		ASSERT_STR_EQ(                               "apa=kossa", parsed->query );
+		ASSERT_STR_EQ(                                "le_query", parsed->fragment );
+
+		ASSERT_EQ( 0x0, parsed->user );
+		ASSERT_EQ( 0x0, parsed->pass );
+		ASSERT_EQ(  80, parsed->port );
+	}
+
+	{
+		// with user and pass
+
+		parsed_url* parsed = parse_url( "http://user:pass@[2001:0db8:85a3:0000:0000:8a2e:0370:7334]/whoppa?apa=kossa#le_query", buffer, sizeof(buffer) );
+		if( parsed == 0x0 )
+			FAILm( "failed to parse url" );
+
+		ASSERT_STR_EQ(                                    "http", parsed->scheme );
+		ASSERT_STR_EQ( "2001:0db8:85a3:0000:0000:8a2e:0370:7334", parsed->host );
+		ASSERT_STR_EQ(                                 "/whoppa", parsed->path );
+		ASSERT_STR_EQ(                                    "user", parsed->user );
+		ASSERT_STR_EQ(                                    "pass", parsed->pass );
+		ASSERT_STR_EQ(                               "apa=kossa", parsed->query );
+		ASSERT_STR_EQ(                                "le_query", parsed->fragment );
+
+		ASSERT_EQ(  80, parsed->port );
+	}
+
+	{
+		// with port
+
+		parsed_url* parsed = parse_url( "http://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:1337/whoppa?apa=kossa#le_query", buffer, sizeof(buffer) );
+		if( parsed == 0x0 )
+			FAILm( "failed to parse url" );
+
+		ASSERT_STR_EQ(                                    "http", parsed->scheme );
+		ASSERT_STR_EQ( "2001:0db8:85a3:0000:0000:8a2e:0370:7334", parsed->host );
+		ASSERT_STR_EQ(                                 "/whoppa", parsed->path );
+		ASSERT_STR_EQ(                               "apa=kossa", parsed->query );
+		ASSERT_STR_EQ(                                "le_query", parsed->fragment );
+
+		ASSERT_EQ(  0x0, parsed->user );
+		ASSERT_EQ(  0x0, parsed->pass );
+		ASSERT_EQ( 1337, parsed->port );
+	}
+
+	{
+		// local host
+
+		parsed_url* parsed = parse_url( "http://[::1]/whoppa?apa=kossa#le_query", buffer, sizeof(buffer) );
+		if( parsed == 0x0 )
+			FAILm( "failed to parse url" );
+
+		ASSERT_STR_EQ( "http",      parsed->scheme );
+		ASSERT_STR_EQ( "::1",       parsed->host );
+		ASSERT_STR_EQ( "/whoppa",   parsed->path );
+		ASSERT_STR_EQ( "apa=kossa", parsed->query );
+		ASSERT_STR_EQ( "le_query",  parsed->fragment );
+
+		ASSERT_EQ(  0x0, parsed->user );
+		ASSERT_EQ(  0x0, parsed->pass );
+		ASSERT_EQ(  80, parsed->port );
+	}
+
+	return GREATEST_TEST_RES_PASS;
+}
+
+TEST ipv6_invalid()
+{
+	// verify fail on invalid ipv6 address...
+	char buffer[2048];
+
+	{
+		// no ending ']'
+		parsed_url* parsed = parse_url( "http://[::1", buffer, sizeof(buffer) );
+		ASSERT_EQ( 0x0, parsed );
+	}
+
+	{
+		// contain non hex char
+		parsed_url* parsed = parse_url( "http://[2001:0db8:85z3::8a2e:0370:7334]", buffer, sizeof(buffer) );
+		ASSERT_EQ( 0x0, parsed );
+	}
+
+	{
+		// contain non a-f,A-F:.
+		parsed_url* parsed = parse_url( "http://[2001:0db8:85!3::8a2e:0370:7334]", buffer, sizeof(buffer) );
+		ASSERT_EQ( 0x0, parsed );
+	}
+
+	return GREATEST_TEST_RES_PASS;
+}
+
 GREATEST_SUITE( url_parse )
 {
 	RUN_TEST( full_url_parse );
@@ -389,6 +492,8 @@ GREATEST_SUITE( url_parse )
 	RUN_TEST( simple_fragment );
 	RUN_TEST( query_and_fragment );
 	RUN_TEST( mem_alloc_fail );
+	RUN_TEST( ipv6 );
+	RUN_TEST( ipv6_invalid );
 }
 
 GREATEST_MAIN_DEFS();

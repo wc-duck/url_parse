@@ -66,6 +66,11 @@ struct parsed_url
 
 	/**
 	 * host part of url or "localhost" if not present.
+	 * if the host is an ipv6 address, i.e. enclosed by [] such as
+	 * http://[::1]/whoppa host will be the string in question.
+	 * It will also be verified that it is a valid ipv6 address, parsing
+	 * will have failed if anything that is not an ipv6 address was found
+	 * within a []
 	 */
 	const char*  host;
 
@@ -239,10 +244,19 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 {
 	out->port = parse_url_default_port_for_scheme( out->scheme );
 
-	const char* portsep = strchr( url, ':' );
-	const char* pathsep = strchr( url, '/' );
-
 	size_t hostlen = 0;
+	const char* ipv6_end = 0x0;
+
+	if(url[0] == '[')
+	{
+		// ipv6 host is always enclosed in a [] to handle the : in an ipv6 address.
+		ipv6_end = strchr( url, ']' );
+		if(ipv6_end == 0x0)
+			return 0x0;
+	}
+
+	const char* portsep = strchr( ipv6_end ? ipv6_end + 1 : url, ':' );
+	const char* pathsep = strchr( ipv6_end ? ipv6_end + 1 : url, '/' );
 
 	if( portsep == 0x0 )
 	{
@@ -265,7 +279,28 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 
 	if( hostlen > 0 )
 	{
-		out->host = parse_url_alloc_lower_string( ctx, url, hostlen );
+		if(ipv6_end)
+		{
+			// ... we have an ipv6 host, we need to strip of the []
+			out->host = parse_url_alloc_lower_string( ctx, url + 1, hostlen - 2 );
+
+			// ... verify that the host is actually a valid ipv6 address... I guess this
+			//     might miss one or two checks.
+			//     this only checks that it contains numbers or hex-chars or : or .
+
+			for(const char* c = out->host; *c; ++c)
+			{
+				bool valid = (*c >= 'a' && *c <= 'f') ||
+							 (*c >= 'A' && *c <= 'F') ||
+							 (*c >= '0' && *c <= '9') ||
+							 (*c == ':') ||
+							 (*c == '.');
+				if(!valid)
+					return 0x0;
+			}
+		}
+		else
+			out->host = parse_url_alloc_lower_string( ctx, url, hostlen );
 		if(out->host == 0x0)
 			return 0x0;
 	}
