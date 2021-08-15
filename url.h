@@ -246,7 +246,6 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 
 	if( portsep == 0x0 )
 	{
-		pathsep = strchr( url, '/' );
 		hostlen = pathsep == 0x0 ? strlen( url ) : (size_t)( pathsep - url );
 	}
 	else
