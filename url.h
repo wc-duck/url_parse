@@ -71,6 +71,7 @@ struct parsed_url
 	 * It will also be verified that it is a valid ipv6 address, parsing
 	 * will have failed if anything that is not an ipv6 address was found
 	 * within a []
+	 * @note the scheme will be lower-cased!
 	 */
 	const char*  host;
 
@@ -317,7 +318,7 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 		else
 			reslen = strlen( pathsep );
 
-		out->path = parse_url_alloc_lower_string( ctx, pathsep, reslen );
+		out->path = parse_url_alloc_string( ctx, pathsep, reslen );
 		if(out->path == 0x0)
 			return 0x0;
 		return pathsep + reslen;

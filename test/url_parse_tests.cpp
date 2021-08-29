@@ -117,6 +117,30 @@ TEST url_no_scheme_with_port()
 	return GREATEST_TEST_RES_PASS;
 }
 
+TEST url_casing()
+{
+	parsed_url* parsed = parse_url( "WhoPPa://UsEr:Pa$$Word@teStUrL.cOm/whIhoWeeHa?qUEry#frAGment", 0x0, 0 );
+	if( parsed == 0x0 )
+		FAILm( "failed to parse url" );
+
+	// scheme and host is case-insensitive according to spec, lowercasing it to make usage simpler.
+	ASSERT_STR_EQ( "whoppa",      parsed->scheme );
+	ASSERT_STR_EQ( "testurl.com", parsed->host );
+	// ... user and pass is ofc ourse not!
+	ASSERT_STR_EQ( "UsEr",        parsed->user );
+	ASSERT_STR_EQ( "Pa$$Word",    parsed->pass );
+	// ... same with path, query and fragment ...
+	ASSERT_STR_EQ( "/whIhoWeeHa", parsed->path );
+	ASSERT_STR_EQ( "qUEry",       parsed->query );
+	ASSERT_STR_EQ( "frAGment",    parsed->fragment );
+
+	ASSERT_EQ( 0,  parsed->port );
+
+	free( parsed );
+
+	return GREATEST_TEST_RES_PASS;
+}
+
 TEST url_no_host()
 {
 	parsed_url* parsed = parse_url( "file:///sub/resource.file", 0x0, 0 );
@@ -485,6 +509,7 @@ GREATEST_SUITE( url_parse )
 	RUN_TEST( url_win_style_abs_path_with_host_and_port );
 	RUN_TEST( url_scheme_is_lower_cased );
 	RUN_TEST( url_no_scheme_with_port );
+	RUN_TEST( url_casing );
 	RUN_TEST( default_port_parse );
 	RUN_TEST( default_scheme_parse );
 	RUN_TEST( default_scheme_with_user_parse );
