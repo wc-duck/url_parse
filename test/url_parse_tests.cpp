@@ -141,6 +141,21 @@ TEST url_casing()
 	return GREATEST_TEST_RES_PASS;
 }
 
+TEST percent_encoding()
+{
+	parsed_url* parsed = parse_url( "testurl.com/%21/%23/%24/%25/%26/%27/%28/%29/%2A/%2B/%2C/%2F/%3A/%3B/%3D/%3F/%40/%5B/%5D", 0x0, 0 );
+	if( parsed == 0x0 )
+		FAILm( "failed to parse url" );
+
+	ASSERT_STR_EQ( "/!/#/$/%/&/'/(/)/*/+/,///:/;/=/?/@/[/]", parsed->path );
+
+	ASSERT_EQ( 0,  parsed->port );
+
+	free( parsed );
+
+	return GREATEST_TEST_RES_PASS;
+}
+
 TEST url_no_host()
 {
 	parsed_url* parsed = parse_url( "file:///sub/resource.file", 0x0, 0 );
@@ -510,6 +525,7 @@ GREATEST_SUITE( url_parse )
 	RUN_TEST( url_scheme_is_lower_cased );
 	RUN_TEST( url_no_scheme_with_port );
 	RUN_TEST( url_casing );
+	RUN_TEST( percent_encoding );
 	RUN_TEST( default_port_parse );
 	RUN_TEST( default_scheme_parse );
 	RUN_TEST( default_scheme_with_user_parse );

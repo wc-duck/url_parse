@@ -169,7 +169,7 @@ static unsigned int parse_url_default_port_for_scheme( const char* scheme )
 	return 0x0;
 }
 
-static const char* parse_url_alloc_string( parse_url_ctx* ctx, const char* src, size_t len)
+static char* parse_url_alloc_string( parse_url_ctx* ctx, const char* src, size_t len)
 {
 	char* dst = (char*)parse_url_alloc_mem( ctx, len + 1 );
 	if( dst == 0x0 )
@@ -241,6 +241,54 @@ static const char* parse_url_parse_user_pass( const char* url, parse_url_ctx* ct
 	return url;
 }
 
+static bool parse_url_is_hex_char( char c )
+{
+	return (c >= 'a' && c <= 'f') ||
+		   (c >= 'A' && c <= 'F') ||
+		   (c >= '0' && c <= '9');
+}
+
+static char parse_url_hex_char_value( char c )
+{
+	if(c >= '0' && c <= '9') return c - '0';
+	if(c >= 'a' && c <= 'f') return c - 'a' + 10;
+	if(c >= 'A' && c <= 'F') return c - 'A' + 10;
+	return 0;
+}
+
+static char* parse_url_unescape_percent_encoding( char* str )
+{
+	char* read  = str;
+	char* write = str;
+
+	while(*read)
+	{
+		if(*read == '%')
+		{
+			++read;
+			if(!parse_url_is_hex_char(*read))
+				return 0x0;
+			char v1 = parse_url_hex_char_value(*read); 
+
+			++read;
+			if(!parse_url_is_hex_char(*read))
+				return 0x0;
+
+			char v2 = parse_url_hex_char_value(*read);
+
+			*write = (char)((v1 << 4) | v2);
+		}
+		else
+		{
+			*write = *read;
+		}
+		++read;
+		++write;
+	}
+	*write = '\0';
+	return str;
+}
+
 static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ctx, parsed_url* out )
 {
 	out->port = parse_url_default_port_for_scheme( out->scheme );
@@ -291,9 +339,7 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 
 			for(const char* c = out->host; *c; ++c)
 			{
-				bool valid = (*c >= 'a' && *c <= 'f') ||
-							 (*c >= 'A' && *c <= 'F') ||
-							 (*c >= '0' && *c <= '9') ||
+				bool valid = parse_url_is_hex_char(*c) ||
 							 (*c == ':') ||
 							 (*c == '.');
 				if(!valid)
@@ -318,9 +364,14 @@ static const char* parse_url_parse_host_port( const char* url, parse_url_ctx* ct
 		else
 			reslen = strlen( pathsep );
 
-		out->path = parse_url_alloc_string( ctx, pathsep, reslen );
+		char* path = parse_url_alloc_string( ctx, pathsep, reslen );
+		if(path == 0x0)
+			return 0x0;
+
+		out->path = parse_url_unescape_percent_encoding(path);
 		if(out->path == 0x0)
 			return 0x0;
+
 		return pathsep + reslen;
 	}
 
