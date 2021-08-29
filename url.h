@@ -92,6 +92,9 @@ struct parsed_url
 	/**
 	 * path part of url.
 	 * if the path part of the url is not present, it will default to "/"
+	 * @note percent-encoded values will get decoded during parse, i.e. %21 will be translated
+	 *       to '!' etc.
+	 *       see: https://en.wikipedia.org/wiki/Percent-encoding
 	 */
 	const char*  path;
 
